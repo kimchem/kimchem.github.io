@@ -24,7 +24,9 @@
                      {"C":"6", "H":"8", "O": "0", "N":"2", "name":"m-Phenylenediamine"},
                      {"C":"6", "H":"8", "O": "0", "N":"2", "name":"p-Phenylenediamine"},
                      {"C":"6", "H":"12", "O": "6", "N":"0", "name":"Glucose"},
-                     {"C":"12", "H":"22", "O": "11", "N":"0", "name":"Sucrose"}]
+                     {"C":"12", "H":"22", "O": "11", "N":"0", "name":"Sucrose"},
+                     {"C":"6", "H":"10", "O": "1", "N":"0", "name":"Unknown 1"},
+                     {"C":"5", "H":"5", "O": "0", "N":"0", "name":"Unknown 2"}]
 
     var combusted = false;
 
@@ -109,6 +111,9 @@
           document.naoh_form.naoh_value.value = newnaoh.toString().substring(0,7);
        }
 	  }
+
+    compounds.push();
+    compounds.push();
 </script>
 </head>
 
@@ -131,6 +136,7 @@
         </select>
 
         <script>
+           compounds[compounds.length-1].N = "1"; compounds[compounds.length-2].O = "2";
            var select = document.getElementById("compoundlist");
 
            for (compound in compounds)
@@ -140,7 +146,7 @@
         <br><br>
 
         <h3><input class="button" name="load_sam" value="Load New Sample" onClick="load_sample()">
-        <input type="text" name="mass_value" value="0.0000" size=5 onFocus="cannot_change(document.mass_form.mass_value)">g</h3>
+        <input type="text" name="mass_value" value="0.0000" size=6 onFocus="cannot_change(document.mass_form.mass_value)">g</h3>
      </form>
    </div>
  </div>
@@ -188,21 +194,21 @@
       <div class="flex-box">
         <form name="mgclo4_form">
            <h3 align="right">Mass of Mg(ClO<sub>4</sub>)<sub>2</sub> chamber
-           <input name="mgclo4_value" value="0.0000" size=5 onFocus="cannot_change(document.mgclo4_form.mgclo4_value)">g</h3>
+           <input name="mgclo4_value" value="0.0000" size=6 onFocus="cannot_change(document.mgclo4_form.mgclo4_value)">g</h3>
         </form>
 
         <form name="naoh_form">
            <h3 align="right">Mass of NaOH chamber
-           <input name="naoh_value" value="0.0000" size=5 onFocus="cannot_change(document.naoh_form.naoh_value)">g</h3>
+           <input name="naoh_value" value="0.0000" size=6 onFocus="cannot_change(document.naoh_form.naoh_value)">g</h3>
         </form>
       </div>
    </div>
 
 
 
-<h3>&copy;KimChem 2020 (Adapted from <a href="http://www.chem.wilkes.edu/~mencer/combustion/combust_exp.htm">D. Mencer</a>)</h3>
-<p>Version 1.0, 26 Aug 2020</p>
-<img src="../img/hbt.jpg" height=100>
+   <h3>&copy;KimChem 2020 (Adapted from <a href="http://www.chem.wilkes.edu/~mencer/combustion/combust_exp.html">D. Mencer</a>)</h3>
+   <p>Version 1.0, 26 Aug 2020</p>
+   <img src="../img/hbt.jpg" height=100>
 
 </body>
 </html>
