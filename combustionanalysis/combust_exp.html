@@ -103,9 +103,9 @@
           let mw = C * 12.01 + H * 1.008 + O * 16.00 + N * 14.01;
 
           let newmgclo4 = parseFloat(document.mgclo4_form.mgclo4_value.value)
-                          + rand_bm()*error*(H/2.0*18.02*document.mass_form.mass_value.value/mw);
+                          + (1.0+rand_bm()*error)*(H/2.0*18.02*document.mass_form.mass_value.value/mw);
           let newnaoh =  parseFloat(document.naoh_form.naoh_value.value)
-                          + rand_bm()*error*(C*44.01*document.mass_form.mass_value.value/mw);
+                          + (1.0+rand_bm()*error)*(C*44.01*document.mass_form.mass_value.value/mw);
 
           document.mgclo4_form.mgclo4_value.value = newmgclo4.toString().substring(0,6);
           document.naoh_form.naoh_value.value = newnaoh.toString().substring(0,7);
