@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../kimchem.css">
+<link href="https://fonts.googleapis.com/css?family=Droid+Serif" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Droid+Sans" rel="stylesheet">
+<title>Formula of a Hydrate Virtual Lab</title>
+
+<script>
+    var compounds = [{"name":"copper(II) sulfate", "H2O":"5", "mass":"159.61"},
+                     {"name":"magnesium sulfate", "H2O":"7", "mass":"120.37"},
+                     {"name":"sodium carbonate", "H2O":"10", "mass":"105.99"},
+                     {"name":"barium chloride", "H2O":"2", "mass":"208.23"},
+                     {"name":"cobalt(II) chloride", "H2O":"6", "mass":"129.84"}]
+
+    var timeheated = 0.0;
+    var originalmass = 0.0;
+    var burneron = false;
+
+    function rand_bm()
+    {
+        var u = 0, v = 0;
+        while(u === 0) u = Math.random();
+        while(v === 0) v = Math.random();
+        return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    }
+
+    function cannot_change(field)
+    {
+	     field.blur();
+	     alert("This value will be supplied for you.");
+	  }
+
+	  function reset_all_values()
+    {
+	     document.mass_form.compound.selectedIndex = 0;
+	     reset_most_values();
+    }
+
+	  function reset_most_values()
+    {
+	     document.mass_form.mass_value.value="0.00";
+	     document.exp_image.src = "img/crucibleburneroff.png";
+       burneron = false;
+       timeheated = 0.0;
+       originalmass = 0.0;
+	  }
+
+	  function load_sample()
+    {
+       originalmass = 2.00+(Math.random()*2.50);
+       document.mass_form.mass_value.value = originalmass.toString().substring(0,4);
+       timeheated = 0.0;
+    }
+
+    var startTime;
+
+    function start_timer()
+    {
+      if (!burneron)
+      {
+        burneron = true;
+        document.exp_image.src = "img/crucibleburneron.png";
+        let d = new Date();
+        startTime = d.getTime();
+      }
+    }
+
+    function stop_timer()
+    {
+      if (burneron)
+      {
+        burneron = false;
+        document.exp_image.src = "img/crucibleburneroff.png";
+        let d = new Date();
+        timeheated += (d.getTime() - startTime) / 5000.0;
+      }
+    }
+
+    function update_mass()
+    {
+      let compound = compounds.find(compound=>compound.name===document.mass_form.compound.value);
+      let newMass = originalmass*(parseFloat(compound.mass) + parseFloat(compound.H2O)*18.02 * Math.exp(-timeheated))
+                                 / (parseFloat(compound.mass) + parseFloat(compound.H2O) * 18.02);
+      document.mass_form.mass_value.value = newMass.toString().substring(0,4);
+    }
+</script>
+</head>
+
+<body>
+   <h1>Formula of a Hydrate Virtual Lab</h1>
+
+   <div class="flex-row">
+     <div class="flex-box">
+     <h3>Before each new trial . . .</h3>
+     <form name="reset_form">
+        <br>
+        <input class="button" name="reset_button" value="Reset Simulation" onClick="reset_all_values()">
+     </form>
+   </div>
+
+   <div class="flex-box">
+     <form name="mass_form">
+        <h3>Select a compound:</h3>
+        <select id="compoundlist" name="compound" onChange="reset_most_values()">
+        </select>
+
+        <script>
+           var select = document.getElementById("compoundlist");
+
+           for (compound in compounds)
+              select.add(new Option(compounds[compound].name));
+        </script>
+
+        <br><br>
+
+        <h3><input class="button" name="load_sam" value="Load New Sample" onClick="load_sample()">
+        <input class="button" name="find_mass" value="Update Mass" onClick="update_mass()">
+        <input type="text" name="mass_value" value="0.00" size=6 onFocus="cannot_change(document.mass_form.mass_value)">g</h3>
+     </form>
+   </div>
+
+      <div class="flex-box">
+        <form>
+           <input class="button" name="burner_on" value="Turn Burner On" onClick="start_timer()">
+        </form>
+        <form>
+           <input class="button" name="burner_off" value="Turn Burner Off" onClick="stop_timer()">
+        </form>
+        <br>
+        <img src="img/crucibleburneroff.png" width=300 name="exp_image"><br>
+      </div>
+   </div>
+
+
+
+   <h3>&copy;KimChem 2020 (Adapted from <a href="http://introchem.chem.okstate.edu/DCICLA/Empirical.html">J. Gelder</a>)</h3>
+   <p>Version 1.0, 27 Sept 2020</p>
+   <img src="../img/hbt.jpg" height=100>
+
+</body>
+</html>
