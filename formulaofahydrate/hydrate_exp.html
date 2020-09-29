@@ -7,11 +7,22 @@
 <title>Formula of a Hydrate Virtual Lab</title>
 
 <script>
-    var compounds = [{"name":"copper(II) sulfate", "H2O":"5", "mass":"159.61"},
-                     {"name":"magnesium sulfate", "H2O":"7", "mass":"120.37"},
-                     {"name":"sodium carbonate", "H2O":"10", "mass":"105.99"},
-                     {"name":"barium chloride", "H2O":"2", "mass":"208.23"},
-                     {"name":"cobalt(II) chloride", "H2O":"6", "mass":"129.84"}]
+    var compounds = [{"name":"copper(II) sulfate", "H2O":"0.3608"},
+                     {"name":"magnesium sulfate", "H2O":"0.5117"},
+                     {"name":"sodium carbonate", "H2O":"0.62965"},
+                     {"name":"barium chloride", "H2O":"0.1475"},
+                     {"name":"calcium chloride", "H2O":"0.2451"},
+                     {"name":"iron(II) acetate", "H2O":"0.2930"},
+                     {"name":"barium hydroxide", "H2O":"0.4569"},
+                     {"name":"zinc nitrate", "H2O":"0.3634"},
+                     {"name":"iron(III) chloride", "H2O":"0.4000"},
+                     {"name":"sodium monohydrogen phosphate", "H2O":"0.4705"},
+                     {"name":"tin(IV) chloride", "H2O":"0.2570"},
+                     {"name":"sodium sulfate", "H2O":"0.5592"},
+                     {"name":"sodium thiosulfate", "H2O":"0.3630"},
+                     {"name":"sodium dichromate", "H2O":"0.1209"},
+                     {"name":"lithium chromate", "H2O":"0.2172"},
+                     {"name":"cobalt(II) chloride", "H2O":"0.4543"}];
 
     var timeheated = 0.0;
     var originalmass = 0.0;
@@ -79,20 +90,24 @@
 
     function update_mass()
     {
-      let compound = compounds.find(compound=>compound.name===document.mass_form.compound.value);
-      let newMass = originalmass*(parseFloat(compound.mass) + parseFloat(compound.H2O)*18.02 * Math.exp(-timeheated))
-                                 / (parseFloat(compound.mass) + parseFloat(compound.H2O) * 18.02);
-      document.mass_form.mass_value.value = newMass.toString().substring(0,4);
+      if (burneron)
+      {
+        alert("Turn off the burner before weighing!");
+      }
+      else
+      {
+        let compound = compounds.find(compound=>compound.name===document.mass_form.compound.value);
+        let newMass = originalmass*(1.0 - parseFloat(compound.H2O) * (1.0 - Math.exp(-timeheated)));
+        document.mass_form.mass_value.value = newMass.toString().substring(0,4);
+      }
     }
 
     function shuffleArray(array)
     {
-      for (var i = array.length - 1; i > 0; i--)
+      for (let i = array.length - 1; i > 0; i--)
       {
-          let j = Math.floor(Math.random() * (i + 1));
-          let temp = array[i];
-          array[i] = array[j];
-          array[j] = temp;
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
       }
     }
 </script>
@@ -126,7 +141,7 @@
 
         <br><br>
 
-        <h3><input class="button" name="load_sam" value="Load New Sample" onClick="load_sample()">
+        <h3><input class="button" name="load_sam" value="Load Hydrate Sample" onClick="load_sample()">
         <input class="button" name="find_mass" value="Update Mass" onClick="update_mass()">
         <input type="text" name="mass_value" value="0.00" size=6 onFocus="cannot_change(document.mass_form.mass_value)">g</h3>
      </form>
