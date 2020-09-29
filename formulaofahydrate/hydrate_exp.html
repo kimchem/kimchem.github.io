@@ -40,10 +40,10 @@
 	  function reset_most_values()
     {
 	     document.mass_form.mass_value.value="0.00";
+       originalmass = 0.0;
 	     document.exp_image.src = "img/crucibleburneroff.png";
        burneron = false;
        timeheated = 0.0;
-       originalmass = 0.0;
 	  }
 
 	  function load_sample()
@@ -84,6 +84,17 @@
                                  / (parseFloat(compound.mass) + parseFloat(compound.H2O) * 18.02);
       document.mass_form.mass_value.value = newMass.toString().substring(0,4);
     }
+
+    function shuffleArray(array)
+    {
+      for (var i = array.length - 1; i > 0; i--)
+      {
+          let j = Math.floor(Math.random() * (i + 1));
+          let temp = array[i];
+          array[i] = array[j];
+          array[j] = temp;
+      }
+    }
 </script>
 </head>
 
@@ -106,6 +117,7 @@
         </select>
 
         <script>
+           shuffleArray(compounds);
            var select = document.getElementById("compoundlist");
 
            for (compound in compounds)
