@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermochemistry & Bond Energy Simulation</title>
+    
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script src="data.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            width: 80%;
+            max-width: 450px;
+        }
+        .equation {
+            font-size: 1.2em;
+            margin: 10px auto;
+            padding: 15px;
+            background: #fdfdfd;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 40px;
+        }
+        .simulation-area {
+            display: flex;
+            justify-content: space-evenly;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            gap: 15px;
+        }
+        .canvas-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fafafa;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+        .controls {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .toggle-container {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .toggle-container label {
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+        }
+        button:active { transform: scale(0.98); }
+        
+        #btnBreak { background-color: #d9534f; }
+        #btnBreak:hover:not(:disabled) { background-color: #c9302c; }
+        #btnBreak:disabled { background-color: #e6a5a3; cursor: not-allowed; }
+        
+        #btnForm { background-color: #5cb85c; }
+        #btnForm:hover:not(:disabled) { background-color: #449d44; }
+        #btnForm:disabled { background-color: #a3d7a3; cursor: not-allowed; }
+        
+        #btnReset { background-color: #5bc0de; }
+        #btnReset:hover:not(:disabled) { background-color: #31b0d5; }
+
+        .quiz-area {
+            display: none;
+            margin-top: 15px;
+            padding: 20px;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 8px;
+            animation: fadeIn 0.5s;
+        }
+        .quiz-area p { margin-top: 0; font-size: 18px; }
+        .quiz-btn { background-color: #f39c12; margin: 5px 10px; width: 140px;}
+        .quiz-btn:hover { background-color: #e67e22; }
+        #quizFeedback { font-size: 16px; font-weight: bold; margin-bottom: 0; min-height: 24px; margin-top: 10px;}
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Thermochemistry & Bond Energy</h2>
+    
+    <select id="reactionSelect">
+        <option value="0">1. Combustion of Methane</option>
+        <option value="1">2. Formation of Water</option>
+        <option value="2">3. Steam Reforming of Methane</option>
+        <option value="3">4. Formation of Nitric Oxide</option>
+        <option value="4">5. Haber Process (Ammonia)</option>
+        <option value="5">6. Hydrogen Fluoride Formation</option>
+        <option value="6">7. Combustion of Carbon Monoxide</option>
+        <option value="7">8. Oxidation of Nitric Oxide</option>
+        <option value="8">9. Formation of Nitrogen Dioxide</option>
+        <option value="9">10. Bromination of Methane</option>
+        <option value="10">11. Hydrogenation of Ethylene</option>
+        <option value="11">12. Hydrogenation of Acetylene</option>
+        <option value="12">13. Formation of Phosgene</option>
+        <option value="13">14. Decomposition of Hydrogen Peroxide</option>
+        <option value="14">15. Synthesis of Methanol</option>
+        <option value="15">16. Hydration of Ethylene</option>
+        <option value="16">17. Reduction of Acetone (Ketone)</option>
+        <option value="17">18. Esterification of Acetic Acid</option>
+        <option value="18">19. Oxidation of Methanethiol (Thiol)</option>
+    </select>
+
+    <div class="equation" id="reactionEquation"></div>
+
+    <div class="simulation-area" id="simArea">
+        <div class="canvas-box">
+            <h3>Molecular View</h3>
+            <canvas id="moleculesCanvas" width="650" height="450"></canvas>
+        </div>
+        <div class="canvas-box">
+            <h3>Energy Diagram</h3>
+            <canvas id="graphCanvas" width="400" height="450"></canvas>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="btnBreak">Step 1: Break Bonds</button>
+        <button id="btnForm" disabled>Step 2: Form Bonds</button>
+        <button id="btnReset">Reset Reaction</button>
+    </div>
+
+    <div class="toggle-container">
+        <label>
+            <input type="checkbox" id="toggleBondEnergies"> Show Individual Bond Energies
+        </label>
+    </div>
+
+    <div class="quiz-area" id="quizArea">
+        <p><strong>Look closely at the energy diagram...</strong><br>Is this reaction Exothermic or Endothermic?</p>
+        <button class="quiz-btn" id="btnExo">Exothermic</button>
+        <button class="quiz-btn" id="btnEndo">Endothermic</button>
+        <p id="quizFeedback"></p>
+    </div>
+</div>
+
+<script>
+    // Failsafe check to make sure data.js is actually loading correctly
+    if (typeof reactionData === 'undefined') {
+        document.getElementById('simArea').innerHTML = '<h3 style="color:red; padding: 40px;">⚠️ Error: Could not read data.js! <br><br>Make sure the file is named exactly <b>data.js</b> (no hidden .txt extension) and is saved in the exact same folder as this HTML file.</h3>';
+        throw new Error("data.js not loaded.");
+    }
+
+    let currentRxn = reactionData[0];
+    let step = 0; 
+    let animationProgress = 0;
+    let isAnimating = false;
+    let showEnergies = false;
+    let hasGuessed = false;
+
+    const molCanvas = document.getElementById('moleculesCanvas');
+    const molCtx = molCanvas.getContext('2d');
+    const graphCanvas = document.getElementById('graphCanvas');
+    const graphCtx = graphCanvas.getContext('2d');
+    const eqDiv = document.getElementById('reactionEquation');
+
+    function updateEquation() {
+        eqDiv.innerHTML = `$$${currentRxn.equation}$$`;
+        if (window.MathJax) { MathJax.typesetPromise([eqDiv]); }
+    }
+
+    function lerp(start, end, t) {
+        return start + (end - start) * (0.5 - 0.5 * Math.cos(t * Math.PI));
+    }
+
+    function drawBond(a1, a2, order, energy, t, breaking) {
+        molCtx.strokeStyle = '#888';
+        molCtx.fillStyle = '#666';
+        
+        let dist = Math.hypot(a2.x - a1.x, a2.y - a1.y);
+        let gap = 6;
+        let midX = (a1.x + a2.x)/2;
+        let midY = (a1.y + a2.y)/2;
+        
+        let dx = (a2.y - a1.y) / dist;
+        let dy = -(a2.x - a1.x) / dist;
+
+        molCtx.globalAlpha = breaking ? (1 - t) : t;
+        
+        for (let i = 0; i < order; i++) {
+            let offset = (i - (order-1)/2) * gap;
+            molCtx.beginPath();
+            molCtx.lineWidth = 3;
+            molCtx.moveTo(a1.x + dx * offset, a1.y + dy * offset);
+            molCtx.lineTo(a2.x + dx * offset, a2.y + dy * offset);
+            molCtx.stroke();
+        }
+
+        if (showEnergies && molCtx.globalAlpha > 0.2) {
+            molCtx.globalAlpha = 1;
+            let textY = midY - 10 - (order*3);
+            molCtx.font = 'bold 12px Arial';
+            let textWidth = molCtx.measureText(energy).width;
+            
+            molCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            molCtx.fillRect(midX - textWidth/2 - 2, textY - 10, textWidth + 4, 14);
+            
+            molCtx.fillStyle = '#c0392b';
+            molCtx.textAlign = 'center';
+            molCtx.fillText(energy, midX, textY);
+        }
+        molCtx.globalAlpha = 1;
+    }
+
+    function drawAtoms(atoms) {
+        atoms.forEach(a => {
+            molCtx.beginPath();
+            molCtx.arc(a.x, a.y, radius[a.type], 0, Math.PI * 2);
+            molCtx.fillStyle = colors[a.type];
+            molCtx.fill();
+            molCtx.lineWidth = 2;
+            molCtx.strokeStyle = '#333';
+            molCtx.stroke();
+            
+            molCtx.fillStyle = (a.type === 'H' || a.type === 'F') ? '#333' : '#fff';
+            molCtx.font = 'bold 14px Arial';
+            molCtx.textAlign = 'center';
+            molCtx.textBaseline = 'middle';
+            molCtx.fillText(a.type, a.x, a.y);
+        });
+    }
+
+    function renderMolecules() {
+        molCtx.clearRect(0, 0, molCanvas.width, molCanvas.height);
+        
+        let displayAtoms = currentRxn.atoms.map(a => {
+            let currentX = a.s0[0], currentY = a.s0[1];
+            if (step === 1) {
+                currentX = lerp(a.s0[0], a.s1[0], animationProgress);
+                currentY = lerp(a.s0[1], a.s1[1], animationProgress);
+            } else if (step === 2) {
+                currentX = lerp(a.s1[0], a.s2[0], animationProgress);
+                currentY = lerp(a.s1[1], a.s2[1], animationProgress);
+            } else if (step > 2) {
+                currentX = a.s2[0]; currentY = a.s2[1];
+            }
+            return { ...a, x: currentX, y: currentY };
+        });
+
+        if (step <= 1) {
+            currentRxn.bonds0.forEach(b => {
+                let a1 = displayAtoms.find(a => a.id === b[0]);
+                let a2 = displayAtoms.find(a => a.id === b[1]);
+                drawBond(a1, a2, b[2], b[3], animationProgress, true);
+            });
+        }
+        if (step >= 1) {
+            let t = step === 1 ? 0 : animationProgress;
+            currentRxn.bonds2.forEach(b => {
+                let a1 = displayAtoms.find(a => a.id === b[0]);
+                let a2 = displayAtoms.find(a => a.id === b[1]);
+                drawBond(a1, a2, b[2], b[3], t, false);
+            });
+        }
+        drawAtoms(displayAtoms);
+    }
+
+    function renderGraph() {
+        graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+        
+        const w = graphCanvas.width;
+        const h = graphCanvas.height;
+        const margin = 50;
+        
+        graphCtx.beginPath();
+        graphCtx.moveTo(margin, 20);
+        graphCtx.lineTo(margin, h - margin);
+        graphCtx.lineTo(w - 20, h - margin);
+        graphCtx.strokeStyle = '#333';
+        graphCtx.lineWidth = 2;
+        graphCtx.stroke();
+        
+        graphCtx.fillStyle = '#333';
+        graphCtx.font = '14px Arial';
+        graphCtx.textAlign = 'center';
+        graphCtx.fillText("Reaction Progress", w/2, h - 15);
+        graphCtx.save();
+        graphCtx.translate(15, h/2);
+        graphCtx.rotate(-Math.PI/2);
+        graphCtx.fillText("Potential Energy (H)", 0, 0);
+        graphCtx.restore();
+
+        const baseH = h - margin - 50;
+        const peakH = 60;
+        
+        let finalH;
+        if (currentRxn.deltaH === 0) finalH = baseH;
+        else if (currentRxn.isEndo) finalH = baseH - 80;
+        else finalH = baseH + 30;
+
+        const rx1 = margin, ry1 = baseH;
+        const rx2 = margin + 40, ry2 = baseH;
+        const px = margin + 140, py = peakH;
+        const fx1 = w - margin - 40, fy1 = finalH;
+        const fx2 = w - margin, fy2 = finalH;
+
+        graphCtx.save();
+        graphCtx.beginPath();
+        let currentClipX = margin;
+        
+        if (step === 0) currentClipX = rx2;
+        else if (step === 1) currentClipX = lerp(rx2, px, animationProgress);
+        else if (step >= 2) currentClipX = lerp(px, fx2, animationProgress);
+        
+        graphCtx.rect(0, 0, currentClipX, h);
+        graphCtx.clip();
+
+        graphCtx.beginPath();
+        graphCtx.moveTo(rx1, ry1);
+        graphCtx.lineTo(rx2, ry2);
+        graphCtx.bezierCurveTo(rx2 + 40, ry2, px - 30, py, px, py);
+        graphCtx.bezierCurveTo(px + 30, py, fx1 - 40, fy1, fx1, fy1);
+        graphCtx.lineTo(fx2, fy2);
+        
+        graphCtx.strokeStyle = '#2980b9';
+        graphCtx.lineWidth = 4;
+        graphCtx.stroke();
+        graphCtx.restore();
+
+        graphCtx.font = '13px Arial';
+        graphCtx.fillStyle = '#333';
+        graphCtx.textAlign = 'center';
+        graphCtx.fillText("Reactants", rx2 - 10, ry2 + 20);
+        
+        if (step >= 1) {
+            graphCtx.textAlign = 'right';
+            graphCtx.fillText("Broken: +" + currentRxn.energyBroken + " kJ/mol", px - 30, py + 20);
+        }
+        if (step >= 2 && animationProgress > 0.8) {
+            graphCtx.textAlign = 'left';
+            graphCtx.fillText("Formed: -" + currentRxn.energyFormed + " kJ/mol", px + 30, py + 20);
+            
+            graphCtx.textAlign = 'center';
+            graphCtx.fillText("Products", fx1 + 10, fy1 + 20);
+            
+            if (hasGuessed) {
+                graphCtx.fillStyle = currentRxn.isEndo ? '#d35400' : '#27ae60';
+                if (currentRxn.deltaH === 0) graphCtx.fillStyle = '#333';
+                
+                graphCtx.font = 'bold 14px Arial';
+                let sign = currentRxn.deltaH > 0 ? '+' : '';
+                graphCtx.fillText(`ΔH = ${sign}${currentRxn.deltaH} kJ`, fx1 + 10, fy1 - 15);
+            }
+        }
+    }
+
+    function animate(timestamp) {
+        if (!isAnimating) return;
+        animationProgress += 0.02;
+        
+        if (animationProgress >= 1) {
+            animationProgress = 1;
+            isAnimating = false;
+            if (step === 1) document.getElementById('btnForm').disabled = false;
+            if (step === 2) document.getElementById('quizArea').style.display = 'block';
+        }
+        
+        renderMolecules();
+        renderGraph();
+        
+        if (isAnimating) requestAnimationFrame(animate);
+    }
+
+    document.getElementById('reactionSelect').addEventListener('change', (e) => {
+        currentRxn = reactionData[e.target.value];
+        resetSimulation();
+    });
+
+    document.getElementById('btnBreak').addEventListener('click', () => {
+        step = 1;
+        animationProgress = 0;
+        isAnimating = true;
+        document.getElementById('btnBreak').disabled = true;
+        document.getElementById('quizArea').style.display = 'none';
+        document.getElementById('quizFeedback').innerText = '';
+        requestAnimationFrame(animate);
+    });
+
+    document.getElementById('btnForm').addEventListener('click', () => {
+        step = 2;
+        animationProgress = 0;
+        isAnimating = true;
+        document.getElementById('btnForm').disabled = true;
+        requestAnimationFrame(animate);
+    });
+
+    document.getElementById('btnReset').addEventListener('click', resetSimulation);
+    
+    document.getElementById('toggleBondEnergies').addEventListener('change', (e) => {
+        showEnergies = e.target.checked;
+        if (!isAnimating) { renderMolecules(); }
+    });
+
+    document.getElementById('btnExo').addEventListener('click', () => {
+        hasGuessed = true;
+        const fb = document.getElementById('quizFeedback');
+        if (!currentRxn.isEndo && currentRxn.deltaH !== 0) {
+            fb.innerText = "✅ Correct! Energy released (formed) > Energy absorbed (broken).";
+            fb.style.color = "green";
+        } else if (currentRxn.deltaH === 0) {
+            fb.innerText = "Neither! This reaction is exactly thermoneutral (ΔH = 0).";
+            fb.style.color = "blue";
+        } else {
+            fb.innerText = "❌ Incorrect. Look at the graph—the products end up with MORE energy.";
+            fb.style.color = "red";
+        }
+        renderGraph();
+    });
+
+    document.getElementById('btnEndo').addEventListener('click', () => {
+        hasGuessed = true;
+        const fb = document.getElementById('quizFeedback');
+        if (currentRxn.isEndo) {
+            fb.innerText = "✅ Correct! Energy absorbed (broken) > Energy released (formed).";
+            fb.style.color = "green";
+        } else if (currentRxn.deltaH === 0) {
+            fb.innerText = "Neither! This reaction is exactly thermoneutral (ΔH = 0).";
+            fb.style.color = "blue";
+        } else {
+            fb.innerText = "❌ Incorrect. Look at the graph—the products end up with LESS energy.";
+            fb.style.color = "red";
+        }
+        renderGraph();
+    });
+
+    function resetSimulation() {
+        step = 0;
+        animationProgress = 0;
+        isAnimating = false;
+        hasGuessed = false;
+        document.getElementById('btnBreak').disabled = false;
+        document.getElementById('btnForm').disabled = true;
+        document.getElementById('quizArea').style.display = 'none';
+        document.getElementById('quizFeedback').innerText = '';
+        updateEquation();
+        renderMolecules();
+        renderGraph();
+    }
+
+    // Direct initialization (bypassing window.onload to ensure it runs)
+    resetSimulation();
+</script>
+
+</body>
+</html>
