@@ -389,9 +389,9 @@
 
                 // Label incoming photon
                 ctx.fillStyle = inContrastColor;
-                ctx.font = '20px monospace';
+                ctx.font = '40px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(`λ = ${simState.lambdaIn.toFixed(2)} pm`, cx + t, cy - 35);
+                ctx.fillText(`λ = ${simState.lambdaIn.toFixed(2)} pm`, cx + t, cy - 50);
 
             } else {
                 // AFTER COLLISION
@@ -406,8 +406,8 @@
                     ctx.stroke();
                     
                     ctx.fillStyle = '#a6e3a1';
-                    ctx.font = '18px monospace';
-                    ctx.fillText('θ', cx + 55 * Math.cos(-simState.thetaRad/2), cy + 55 * Math.sin(-simState.thetaRad/2) - 5);
+                    ctx.font = '36px monospace';
+                    ctx.fillText('θ', cx + 75 * Math.cos(-simState.thetaRad/2), cy + 75 * Math.sin(-simState.thetaRad/2) + 12);
                 }
 
                 if (simState.theta > 0 && simState.phiRad > 0) {
@@ -419,8 +419,8 @@
                     ctx.stroke();
 
                     ctx.fillStyle = '#cba6f7';
-                    ctx.font = '18px monospace';
-                    ctx.fillText('φ', cx + 65 * Math.cos(simState.phiRad/2), cy + 65 * Math.sin(simState.phiRad/2) + 12);
+                    ctx.font = '36px monospace';
+                    ctx.fillText('φ', cx + 85 * Math.cos(simState.phiRad/2), cy + 85 * Math.sin(simState.phiRad/2) + 12);
                 }
 
                 // Draw Scattered Photon
@@ -442,9 +442,9 @@
                 const outX = cx + t * Math.cos(-simState.thetaRad);
                 const outY = cy + t * Math.sin(-simState.thetaRad);
                 ctx.fillStyle = outContrastColor;
-                ctx.font = '20px monospace';
+                ctx.font = '40px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(`λ' = ${simState.lambdaOut.toFixed(2)} pm`, outX, outY - 35);
+                ctx.fillText(`λ' = ${simState.lambdaOut.toFixed(2)} pm`, outX, outY - 50);
 
                 // Draw Recoiling Electron
                 const eDist = t * simState.recoilSpeed;
