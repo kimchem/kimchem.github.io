@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compton Effect Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for range sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #89b4fa;
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(137, 180, 250, 0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #45475a;
+            border-radius: 3px;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        
+        body {
+            background-color: #11111b;
+            color: #cdd6f4;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        .panel {
+            background-color: #1e1e2e;
+            border: 1px solid #313244;
+        }
+        
+        .stat-box {
+            background-color: #181825;
+            border: 1px solid #313244;
+        }
+        
+        #canvas-container {
+            background: radial-gradient(circle at center, #1e1e2e 0%, #11111b 100%);
+            border: 1px solid #313244;
+            position: relative;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-6 gap-6">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-white tracking-tight">Compton Effect Simulation</h1>
+            <p class="text-gray-400 mt-1">Visualize X-ray scattering and wave-particle duality.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex flex-col lg:flex-row gap-6 flex-1 h-full">
+        
+        <!-- Controls & Data Panel -->
+        <aside class="panel rounded-xl p-6 flex flex-col w-full lg:w-96 shadow-xl flex-shrink-0">
+            
+            <h2 class="text-xl font-semibold text-white mb-4 border-b border-gray-700 pb-2">Parameters</h2>
+            
+            <!-- Sliders -->
+            <div class="space-y-6 mb-8">
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="text-sm font-medium text-gray-300">Incident Wavelength (λ)</label>
+                        <span id="label-lambda-in" class="text-sm font-mono text-[#89b4fa]">2.00 pm</span>
+                    </div>
+                    <input type="range" id="lambdaIn" min="0.1" max="25" step="0.1" value="2.0">
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0.1 pm (High E)</span>
+                        <span>25 pm (Low E)</span>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="text-sm font-medium text-gray-300">Scattering Angle (θ)</label>
+                        <span id="label-theta" class="text-sm font-mono text-[#a6e3a1]">90°</span>
+                    </div>
+                    <input type="range" id="theta" min="0" max="180" step="1" value="90">
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>0° (Forward)</span>
+                        <span>180° (Back)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                <h2 class="text-xl font-semibold text-white">Results</h2>
+                <button id="toggleResultsBtn" class="text-xs bg-[#313244] hover:bg-[#45475a] text-white px-2 py-1 rounded transition-colors">Hide</button>
+            </div>
+            
+            <div id="results-content" class="flex flex-col flex-1">
+                <!-- Results Grid -->
+                <div class="grid grid-cols-2 gap-3 flex-1">
+                    <div class="stat-box rounded-lg p-3">
+                        <div class="text-xs text-gray-400 mb-1">Scattered λ'</div>
+                        <div id="val-lambda-out" class="text-lg font-mono text-[#f9e2af]">-- pm</div>
+                    </div>
+                    <div class="stat-box rounded-lg p-3">
+                        <div class="text-xs text-gray-400 mb-1">Shift Δλ</div>
+                        <div id="val-delta" class="text-lg font-mono text-[#fab387]">-- pm</div>
+                    </div>
+                    <div class="stat-box rounded-lg p-3">
+                        <div class="text-xs text-gray-400 mb-1">Incident Energy</div>
+                        <div id="val-e-in" class="text-lg font-mono text-[#89b4fa]">-- keV</div>
+                    </div>
+                    <div class="stat-box rounded-lg p-3">
+                        <div class="text-xs text-gray-400 mb-1">Scattered Energy</div>
+                        <div id="val-e-out" class="text-lg font-mono text-[#f9e2af]">-- keV</div>
+                    </div>
+                    <div class="stat-box rounded-lg p-3">
+                        <div class="text-xs text-gray-400 mb-1">Electron Recoil (φ)</div>
+                        <div id="val-phi" class="text-lg font-mono text-[#cba6f7]">--°</div>
+                    </div>
+                    <div class="stat-box rounded-lg p-3">
+                        <div class="text-xs text-gray-400 mb-1">Electron Energy</div>
+                        <div id="val-e-electron" class="text-lg font-mono text-[#cba6f7]">-- keV</div>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-xs text-gray-500 leading-relaxed">
+                    The Compton Effect describes the scattering of a photon by a charged particle (usually an electron). It results in a decrease in energy (increase in wavelength) of the photon, demonstrating its particle-like nature.
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- Visualization Canvas -->
+        <div id="canvas-container" class="rounded-xl flex-1 min-h-[400px] shadow-xl relative">
+            <canvas id="simCanvas" class="w-full h-full absolute inset-0"></canvas>
+            
+            <!-- Canvas Overlay UI -->
+            <div class="absolute top-4 left-4 text-xs font-mono text-gray-400 bg-black/40 px-3 py-1.5 rounded backdrop-blur-sm border border-gray-700">
+                Formula: λ' - λ = (h / m<sub>e</sub>c) (1 - cos θ)
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- Constants & Physical Values ---
+        // Compton Wavelength of electron ~ 2.426 pm
+        const LAMBDA_C = 2.42631; 
+        // Conversion factor: E = hc / lambda. hc ~ 1239.8 keV * pm
+        const HC_KEV_PM = 1239.8; 
+
+        // --- DOM Elements ---
+        const lambdaInput = document.getElementById('lambdaIn');
+        const thetaInput = document.getElementById('theta');
+        
+        const labelLambdaIn = document.getElementById('label-lambda-in');
+        const labelTheta = document.getElementById('label-theta');
+        
+        const valLambdaOut = document.getElementById('val-lambda-out');
+        const valDelta = document.getElementById('val-delta');
+        const valEIn = document.getElementById('val-e-in');
+        const valEOut = document.getElementById('val-e-out');
+        const valPhi = document.getElementById('val-phi');
+        const valEElectron = document.getElementById('val-e-electron');
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const toggleResultsBtn = document.getElementById('toggleResultsBtn');
+        const resultsContent = document.getElementById('results-content');
+
+        // --- Simulation State ---
+        let simState = {
+            lambdaIn: 2.0,
+            theta: 90,
+            thetaRad: Math.PI / 2,
+            lambdaOut: 0,
+            deltaLambda: 0,
+            phi: 0,
+            phiRad: 0,
+            energyIn: 0,
+            energyOut: 0,
+            energyElectron: 0,
+            recoilSpeed: 0 // A purely visual relative speed factor
+        };
+
+        let animState = {
+            t: 0, // Time parameter (distance from center)
+            wavePhase: 0,
+            width: 0,
+            height: 0,
+            cx: 0,
+            cy: 0
+        };
+
+        // --- Core Logic ---
+        function updatePhysics() {
+            simState.lambdaIn = parseFloat(lambdaInput.value);
+            simState.theta = parseFloat(thetaInput.value);
+            simState.thetaRad = simState.theta * Math.PI / 180;
+
+            // Compton Shift formula
+            simState.deltaLambda = LAMBDA_C * (1 - Math.cos(simState.thetaRad));
+            simState.lambdaOut = simState.lambdaIn + simState.deltaLambda;
+
+            // Recoil Angle
+            // tan(φ) = (λ * sin(θ)) / (λ' - λ * cos(θ))
+            const num = simState.lambdaIn * Math.sin(simState.thetaRad);
+            const den = simState.lambdaOut - simState.lambdaIn * Math.cos(simState.thetaRad);
+            simState.phiRad = Math.atan2(num, den);
+            simState.phi = simState.phiRad * 180 / Math.PI;
+
+            // Energy Calculations
+            simState.energyIn = HC_KEV_PM / simState.lambdaIn;
+            simState.energyOut = HC_KEV_PM / simState.lambdaOut;
+            simState.energyElectron = simState.energyIn - simState.energyOut;
+
+            // Visual recoil speed mapping (non-linear, just to look pleasing)
+            // Capped to ensure it's visibly slower than the photon
+            simState.recoilSpeed = Math.min(0.6, 0.25 * Math.sqrt(simState.deltaLambda / simState.lambdaIn));
+            if (simState.theta === 0) simState.recoilSpeed = 0; // Prevent jitter on exactly 0
+
+            updateUI();
+        }
+
+        function updateUI() {
+            labelLambdaIn.textContent = simState.lambdaIn.toFixed(2) + ' pm';
+            labelTheta.textContent = simState.theta + '°';
+
+            valLambdaOut.textContent = simState.lambdaOut.toFixed(2) + ' pm';
+            valDelta.textContent = simState.deltaLambda.toFixed(3) + ' pm';
+            
+            // Format energies cleanly based on magnitude
+            valEIn.textContent = formatEnergy(simState.energyIn);
+            valEOut.textContent = formatEnergy(simState.energyOut);
+            valEElectron.textContent = formatEnergy(simState.energyElectron);
+            
+            // Format phi. If theta is 0, phi is meaningless (no recoil)
+            if (simState.theta === 0) {
+                valPhi.textContent = '0.0°';
+            } else {
+                valPhi.textContent = simState.phi.toFixed(1) + '°';
+            }
+        }
+
+        function formatEnergy(keV) {
+            if (keV > 1000) return (keV/1000).toFixed(2) + ' MeV';
+            if (keV < 1) return (keV*1000).toFixed(0) + ' eV';
+            return keV.toFixed(1) + ' keV';
+        }
+
+        // Color mapping for photons based on wavelength
+        // Maps short wavelength (high energy) to blue/purple, and long wavelength to red
+        function getWavelengthColor(lambda) {
+            // Constrain lambda mapping to create a nice visual spread between 0.1 and 30 pm
+            let mapped = Math.max(0.1, Math.min(30, lambda));
+            let hue = 280 - (mapped / 30) * 280; // 280 (Purple) to 0 (Red)
+            return `hsl(${hue}, 100%, 65%)`;
+        }
+
+        // Generate a complementary color for text contrast
+        function getContrastingColor(lambda) {
+            let mapped = Math.max(0.1, Math.min(30, lambda));
+            let hue = 280 - (mapped / 30) * 280;
+            let contrastingHue = (hue + 180) % 360; // Opposite side of the color wheel
+            return `hsl(${contrastingHue}, 100%, 80%)`; // Brighter for readability on dark background
+        }
+
+        // --- Canvas Rendering ---
+        function resizeCanvas() {
+            const container = document.getElementById('canvas-container');
+            const rect = container.getBoundingClientRect();
+            
+            // Handle high DPI displays
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            ctx.scale(dpr, dpr);
+            
+            animState.width = rect.width;
+            animState.height = rect.height;
+            animState.cx = rect.width / 2;
+            animState.cy = rect.height / 2;
+        }
+
+        function drawPhotonPacket(ctx, x, y, lambda, color) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.beginPath();
+
+            const length = 160; // Increased visual length to see more wave cycles
+            const sigma = 25;   // Increased Gaussian envelope width
+            
+            // Map amplitude slightly to energy (lower lambda = higher energy = larger amplitude)
+            const mappedLambda = Math.max(0.1, Math.min(30, lambda));
+            const amplitude = 18 - (mappedLambda / 30) * 10; 
+
+            // Exaggerated linear mapping to make wavelength changes more visually obvious
+            const visualWavelength = 6 + lambda * 2.0;
+            const k = (Math.PI * 2) / visualWavelength;
+
+            ctx.moveTo(-length/2, 0);
+            for(let i = -length/2; i <= length/2; i++) {
+                // Gaussian envelope to localize the wave
+                const env = Math.exp(-(i * i) / (2 * sigma * sigma));
+                const wy = amplitude * env * Math.sin(k * i - animState.wavePhase);
+                ctx.lineTo(i, wy);
+            }
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = color;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawElectron(ctx, x, y, radius = 6) {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#cba6f7'; // Mauve
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#cba6f7';
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        function drawScene() {
+            ctx.clearRect(0, 0, animState.width, animState.height);
+
+            const { cx, cy } = animState;
+            const t = animState.t;
+
+            // 1. Draw Background Grid & Axes
+            ctx.strokeStyle = '#313244';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, cy); ctx.lineTo(animState.width, cy); // X axis
+            ctx.moveTo(cx, 0); ctx.lineTo(cx, animState.height); // Y axis
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Target Marker at Center
+            ctx.beginPath();
+            ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+            ctx.strokeStyle = '#45475a';
+            ctx.stroke();
+
+            const inColor = getWavelengthColor(simState.lambdaIn);
+            const outColor = getWavelengthColor(simState.lambdaOut);
+            
+            const inContrastColor = getContrastingColor(simState.lambdaIn);
+            const outContrastColor = getContrastingColor(simState.lambdaOut);
+
+            // Time state determines what to draw
+            if (t < 0) {
+                // BEFORE COLLISION
+                
+                // Draw incident photon path trail
+                ctx.beginPath();
+                ctx.moveTo(0, cy);
+                ctx.lineTo(cx + t, cy);
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.stroke();
+
+                // Draw stationary electron
+                drawElectron(ctx, cx, cy);
+
+                // Draw incoming photon
+                drawPhotonPacket(ctx, cx + t, cy, simState.lambdaIn, inColor);
+
+                // Label incoming photon
+                ctx.fillStyle = inContrastColor;
+                ctx.font = '14px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`λ = ${simState.lambdaIn.toFixed(2)} pm`, cx + t, cy - 30);
+
+            } else {
+                // AFTER COLLISION
+
+                // Draw Angle Arcs
+                if (simState.theta > 0) {
+                    // Theta arc
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 40, 0, -simState.thetaRad, true);
+                    ctx.strokeStyle = '#a6e3a1'; // Greenish
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#a6e3a1';
+                    ctx.font = '12px monospace';
+                    ctx.fillText('θ', cx + 45 * Math.cos(-simState.thetaRad/2), cy + 45 * Math.sin(-simState.thetaRad/2) - 5);
+                }
+
+                if (simState.theta > 0 && simState.phiRad > 0) {
+                    // Phi arc
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 50, 0, simState.phiRad, false);
+                    ctx.strokeStyle = '#cba6f7'; // Mauve
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#cba6f7';
+                    ctx.font = '12px monospace';
+                    ctx.fillText('φ', cx + 55 * Math.cos(simState.phiRad/2), cy + 55 * Math.sin(simState.phiRad/2) + 12);
+                }
+
+                // Draw Scattered Photon
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(-simState.thetaRad); // Negative because Canvas Y is down
+                
+                // Trail
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(t, 0);
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.stroke();
+                
+                drawPhotonPacket(ctx, t, 0, simState.lambdaOut, outColor);
+                ctx.restore();
+
+                // Label outgoing photon
+                const outX = cx + t * Math.cos(-simState.thetaRad);
+                const outY = cy + t * Math.sin(-simState.thetaRad);
+                ctx.fillStyle = outContrastColor;
+                ctx.font = '14px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`λ' = ${simState.lambdaOut.toFixed(2)} pm`, outX, outY - 30);
+
+                // Draw Recoiling Electron
+                const eDist = t * simState.recoilSpeed;
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(simState.phiRad); // Positive because Canvas Y is down
+                
+                // Trail
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(eDist, 0);
+                ctx.strokeStyle = 'rgba(203, 166, 247, 0.2)';
+                ctx.setLineDash([3, 3]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                drawElectron(ctx, eDist, 0);
+                ctx.restore();
+            }
+        }
+
+        function loop() {
+            // Update time and wave phase
+            animState.t += 2.25; // Propagation speed (slowed down by 2x)
+            animState.wavePhase += 0.2; // Wiggle speed (slowed down by 2x)
+
+            // Reset loop
+            const maxDist = Math.max(animState.width, animState.height) + 100;
+            if (animState.t > maxDist) {
+                animState.t = -animState.cx - 100; // Start offscreen left
+            }
+
+            drawScene();
+            requestAnimationFrame(loop);
+        }
+
+        // --- Event Listeners ---
+        lambdaInput.addEventListener('input', updatePhysics);
+        thetaInput.addEventListener('input', updatePhysics);
+        window.addEventListener('resize', resizeCanvas);
+
+        toggleResultsBtn.addEventListener('click', () => {
+            if (resultsContent.classList.contains('hidden')) {
+                resultsContent.classList.remove('hidden');
+                resultsContent.classList.add('flex');
+                toggleResultsBtn.textContent = 'Hide';
+            } else {
+                resultsContent.classList.add('hidden');
+                resultsContent.classList.remove('flex');
+                toggleResultsBtn.textContent = 'Show';
+            }
+            // Trigger canvas resize in case the layout shift changes container bounds
+            setTimeout(resizeCanvas, 50);
+        });
+
+        // --- Initialization ---
+        resizeCanvas();
+        updatePhysics();
+        animState.t = -animState.cx - 100; // Initialize starting position
+        loop();
+
+    </script>
+</body>
+</html>
